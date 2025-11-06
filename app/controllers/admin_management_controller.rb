@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AdminManagementController < ApplicationController
   before_action :authenticate_admin!
   before_action :require_admin!
@@ -8,9 +10,9 @@ class AdminManagementController < ApplicationController
 
   def create_admin
     email = params[:email]&.strip&.downcase
-    
+
     if email.blank?
-      flash[:alert] = "Email cannot be blank."
+      flash[:alert] = 'Email cannot be blank.'
       redirect_to admin_management_path and return
     end
 
@@ -21,14 +23,14 @@ class AdminManagementController < ApplicationController
     end
 
     # Validate email format
-    unless email.match?(/\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i)
-      flash[:alert] = "Invalid email format."
+    unless email.match?(/\A[\w+\-.]+@[a-z\d-]+(\.[a-z\d-]+)*\.[a-z]+\z/i)
+      flash[:alert] = 'Invalid email format.'
       redirect_to admin_management_path and return
     end
 
     # Create new admin
     begin
-      admin = Admin.create!(
+      Admin.create!(
         email: email,
         full_name: email.split('@').first.titleize,
         uid: SecureRandom.hex(10),
@@ -36,7 +38,7 @@ class AdminManagementController < ApplicationController
         role: 'admin'
       )
       flash[:success] = "Admin #{email} has been added successfully."
-    rescue => e
+    rescue StandardError => e
       flash[:alert] = "Error creating admin: #{e.message}"
     end
 
@@ -45,16 +47,16 @@ class AdminManagementController < ApplicationController
 
   def remove_admin
     admin = Admin.find(params[:id])
-    
+
     # Prevent removing the last admin
     if Admin.count <= 1
-      flash[:alert] = "Cannot remove the last admin."
+      flash[:alert] = 'Cannot remove the last admin.'
       redirect_to admin_management_path and return
     end
 
     # Prevent admin from removing themselves
     if admin == current_admin
-      flash[:alert] = "You cannot remove yourself as an admin."
+      flash[:alert] = 'You cannot remove yourself as an admin.'
       redirect_to admin_management_path and return
     end
 

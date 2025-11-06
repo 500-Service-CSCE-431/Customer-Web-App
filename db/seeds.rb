@@ -7,14 +7,15 @@
 if Rails.env.development?
   # DEVELOPMENT ENVIRONMENT - Sample Calendar Events and Admin
   puts 'Seeding development environment with sample calendar events and admin...'
-  
+
   # Create admin user for development
   admin = Admin.find_by('LOWER(email) = LOWER(?)', 'isaacgeng@tamu.edu')
   if admin
     admin.update!(role: 'admin') if admin.role.blank?
     puts 'Admin user already exists: isaacgeng@tamu.edu'
   else
-    Admin.create!(email: 'isaacgeng@tamu.edu', full_name: 'Isaac Geng', uid: '102717360320592949627', encrypted_password: 'oauth_user', role: 'admin')
+    Admin.create!(email: 'isaacgeng@tamu.edu', full_name: 'Isaac Geng', uid: '102717360320592949627',
+                  encrypted_password: 'oauth_user', role: 'admin')
     puts 'Admin user created: isaacgeng@tamu.edu'
   end
 
@@ -80,14 +81,15 @@ elsif Rails.env.test?
 else
   # PRODUCTION ENVIRONMENT - Production Calendar Events and Admin
   puts 'Seeding production environment with production calendar events and admin...'
-  
+
   # Create admin user for production
   admin = Admin.find_by('LOWER(email) = LOWER(?)', 'isaacgeng@tamu.edu')
   if admin
     admin.update!(role: 'admin') if admin.role != 'admin'
     puts 'Admin user already exists: isaacgeng@tamu.edu'
   else
-    Admin.create!(email: 'isaacgeng@tamu.edu', full_name: 'Isaac Geng', uid: '102717360320592949627', encrypted_password: 'oauth_user', role: 'admin')
+    Admin.create!(email: 'isaacgeng@tamu.edu', full_name: 'Isaac Geng', uid: '102717360320592949627',
+                  encrypted_password: 'oauth_user', role: 'admin')
     puts 'Admin user created: isaacgeng@tamu.edu'
   end
 

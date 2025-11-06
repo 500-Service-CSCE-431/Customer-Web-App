@@ -21,10 +21,10 @@ class ApplicationController < ActionController::Base
 
   # Helper method to require admin privileges
   def require_admin!
-    unless admin_user?
-      flash[:alert] = "You must be an admin to access this page."
-      redirect_to home_path
-    end
+    return if admin_user?
+
+    flash[:alert] = 'You must be an admin to access this page.'
+    redirect_to home_path
   end
 
   # Helper method to get current user info (now using the admin model)
@@ -42,6 +42,7 @@ class ApplicationController < ActionController::Base
   # Helper method to check if current user is signed up for an event
   def signed_up_for?(event)
     return false unless user_signed_in?
+
     current_user.signed_up_events.include?(event)
   end
   helper_method :signed_up_for?

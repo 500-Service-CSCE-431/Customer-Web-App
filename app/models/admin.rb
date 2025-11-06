@@ -1,5 +1,6 @@
-class Admin < ApplicationRecord
+# frozen_string_literal: true
 
+class Admin < ApplicationRecord
   devise :omniauthable, omniauth_providers: [:google_oauth2]
 
   has_many :signups, dependent: :destroy
@@ -7,12 +8,12 @@ class Admin < ApplicationRecord
 
   # Role validations
   validates :role, presence: true, inclusion: { in: %w[member admin] }
-  
+
   # Role helper methods
   def admin?
     role == 'admin'
   end
-  
+
   def member?
     role == 'member'
   end
@@ -20,7 +21,7 @@ class Admin < ApplicationRecord
   def self.from_google(email:, full_name:, uid:, avatar_url:)
     # Find existing user or create new one
     admin = find_by('LOWER(email) = LOWER(?)', email)
-    
+
     if admin
       # Update existing user with new OAuth data
       admin.update!(uid: uid, full_name: full_name, avatar_url: avatar_url)
@@ -36,5 +37,4 @@ class Admin < ApplicationRecord
       )
     end
   end
-
 end

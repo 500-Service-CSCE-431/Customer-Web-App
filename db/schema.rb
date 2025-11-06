@@ -44,6 +44,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_21_032438) do
     t.index ["user_id"], name: "index_calendars_on_user_id"
   end
 
+  create_table "event_signups", force: :cascade do |t|
+    t.string "user_email"
+    t.string "user_name"
+    t.bigint "calendar_id", null: false
+    t.datetime "signed_up_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["calendar_id"], name: "index_event_signups_on_calendar_id"
+  end
+
   create_table "registrations", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.bigint "calendar_id", null: false
@@ -86,6 +96,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_21_032438) do
   end
 
   add_foreign_key "calendars", "users"
+  add_foreign_key "event_signups", "calendars"
   add_foreign_key "registrations", "calendars"
   add_foreign_key "registrations", "users"
   add_foreign_key "signups", "admins"

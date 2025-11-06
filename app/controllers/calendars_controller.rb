@@ -3,68 +3,68 @@
 require 'csv'
 
 class CalendarsController < ApplicationController
-  before_action :authenticate_admin!, except: [:home, :show, :about]
-  before_action :require_admin!, only: [:new, :create, :edit, :update, :delete, :destroy]
+  before_action :authenticate_admin!, except: %i[home show about]
+  before_action :require_admin!, only: %i[new create edit update delete destroy]
 
   def home
     # Handle date parameter for navigation
-    if params[:date].present?
-      @current_date = Date.parse(params[:date] + "-01")
-    else
-      @current_date = Date.current
-    end
-    
+    @current_date = if params[:date].present?
+                      Date.parse("#{params[:date]}-01")
+                    else
+                      Date.current
+                    end
+
     # Get start and end of month
     month_start = @current_date.beginning_of_month
     month_end = @current_date.end_of_month
-    
+
     # Get calendar start (beginning of week containing month start)
     calendar_start = month_start.beginning_of_week(:sunday)
     calendar_end = month_end.end_of_week(:sunday)
-    
+
     # Get all events for the visible calendar period
     @events = Calendar.where(event_date: calendar_start..calendar_end)
-    
+
     # Apply category filtering
     @selected_categories = params[:categories] || []
     if @selected_categories.present? && @selected_categories.any?(&:present?)
       @events = @events.where(category: @selected_categories)
     end
-    
+
     # Build calendar days array
     @calendar_days = []
     current_date = calendar_start
-    
+
     while current_date <= calendar_end
       day_events = @events.select { |event| event.event_date.to_date == current_date }
-      
+
       @calendar_days << {
         date: current_date,
         events: day_events,
         other_month: current_date.month != @current_date.month,
         today: current_date == Date.current
       }
-      
+
       current_date += 1.day
     end
-    
+
     # Available categories for filtering
-    @available_categories = %w[Service Bush\ School Social]
-    
+    @available_categories = ['Service', 'Bush School', 'Social']
+
     # Dashboard data for signed-in users
-    if user_signed_in?
-      # Past events user attended (events that have already occurred)
-      @past_events = current_user.signed_up_events
-                                 .where('event_date < ?', Time.current)
-                                 .order(event_date: :desc)
-                                 .limit(10)
-      
-      # Future events user is signed up for
-      @upcoming_events = current_user.signed_up_events
-                                     .where('event_date >= ?', Time.current)
-                                     .order(:event_date)
-                                     .limit(10)
-    end
+    return unless user_signed_in?
+
+    # Past events user attended (events that have already occurred)
+    @past_events = current_user.signed_up_events
+                               .where('event_date < ?', Time.current)
+                               .order(event_date: :desc)
+                               .limit(10)
+
+    # Future events user is signed up for
+    @upcoming_events = current_user.signed_up_events
+                                   .where('event_date >= ?', Time.current)
+                                   .order(:event_date)
+                                   .limit(10)
   end
 
   def show
@@ -78,10 +78,11 @@ class CalendarsController < ApplicationController
   def export
     @calendar = Calendar.find(params[:id])
     require_admin!
-    
+
     respond_to do |format|
       format.csv do
-        send_data generate_csv, filename: "#{@calendar.title.parameterize}_signups_#{Date.current.strftime('%Y%m%d')}.csv"
+        send_data generate_csv,
+                  filename: "#{@calendar.title.parameterize}_signups_#{Date.current.strftime('%Y%m%d')}.csv"
       end
     end
   end
@@ -93,7 +94,7 @@ class CalendarsController < ApplicationController
 
   def create
     @calendar = Calendar.new(calendar_params)
-    
+
     if @calendar.save
       flash[:notice] = 'Calendar Event Added!'
       redirect_to home_path
@@ -111,7 +112,7 @@ class CalendarsController < ApplicationController
 
   def update
     @calendar = Calendar.find(params[:id])
-    
+
     if @calendar.update(calendar_params)
       flash[:notice] = 'Calendar event updated.'
       redirect_to home_path
@@ -130,7 +131,6 @@ class CalendarsController < ApplicationController
   end
   #----------------------------------------------------------------------------#
 
-
   private
 
   def calendar_params
@@ -139,7 +139,7 @@ class CalendarsController < ApplicationController
 
   def generate_csv
     require 'csv'
-    
+
     CSV.generate do |csv|
       # Event details header
       csv << ['Event Details']
@@ -149,11 +149,11 @@ class CalendarsController < ApplicationController
       csv << ['Location', @calendar.location]
       csv << ['Description', @calendar.description]
       csv << [] # Empty row
-      
+
       # Signups header
       csv << ['Signups']
       csv << ['Name', 'Email', 'Signed Up At']
-      
+
       # Signup data
       @calendar.signups.includes(:admin).each do |signup|
         csv << [
