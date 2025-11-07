@@ -55,6 +55,27 @@
         </div>
       </div>
 
+      <% if admin_user? %>
+        <div class="qr-section">
+          <h2 class="qr-title">Shareable QR Code</h2>
+          <p class="qr-description">Share this code or link so members can reach the event details instantly.</p>
+          <div class="qr-image-wrapper">
+            <img src="<%= calendar_qr_code_data_uri(@calendar) %>" alt="QR code for <%= @calendar.title %>" id="event-qr-code" class="qr-image">
+          </div>
+          <div class="qr-actions">
+            <button type="button" class="action-button qr-copy-button" id="copy-qr-button" data-share-url="<%= calendar_share_url(@calendar) %>">
+              Copy QR Code
+            </button>
+            <button type="button" class="action-button qr-download-button" id="download-qr-button">
+              Download PNG
+            </button>
+            <button type="button" class="action-button qr-link-button" id="copy-link-button" data-share-url="<%= calendar_share_url(@calendar) %>">
+              Copy Event Link
+            </button>
+          </div>
+        </div>
+      <% end %>
+
       <div class="action-buttons">
         <% if user_signed_in? %>
           <% if current_user.signed_up_events.include?(@calendar) %>
@@ -220,6 +241,86 @@ body {
   border-radius: 8px;
   border: 1px solid #e0e0e0;
   margin-top: 5px;
+}
+
+.qr-section {
+  margin-top: 30px;
+  padding: 30px;
+  border-radius: 15px;
+  background: rgba(255, 204, 213, 0.25);
+  border: 1px solid rgba(255, 143, 171, 0.25);
+  text-align: center;
+}
+
+.qr-title {
+  margin: 0 0 10px 0;
+  color: #d81b60;
+  font-weight: 500;
+  font-size: 1.5rem;
+}
+
+.qr-description {
+  margin: 0 0 25px 0;
+  color: #5f6368;
+  font-size: 1rem;
+}
+
+.qr-image-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.qr-image {
+  width: 220px;
+  height: 220px;
+  border-radius: 16px;
+  padding: 12px;
+  background: white;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.qr-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.qr-copy-button {
+  background: linear-gradient(135deg, #7e57c2 0%, #9575cd 100%);
+  color: white;
+  border-color: #7e57c2;
+}
+
+.qr-copy-button:hover {
+  background: linear-gradient(135deg, #6a47b0 0%, #7e57c2 100%);
+  box-shadow: 0 4px 12px rgba(126, 87, 194, 0.3);
+}
+
+.qr-download-button {
+  background: transparent;
+  color: #2196f3;
+  border-color: #2196f3;
+}
+
+.qr-download-button:hover {
+  background: #2196f3;
+  color: white;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.qr-link-button {
+  background: transparent;
+  color: #5f6368;
+  border-color: #dadce0;
+}
+
+.qr-link-button:hover {
+  background: #f8f9fa;
+  color: #3c4043;
+  border-color: #5f6368;
 }
 
 .action-buttons {
@@ -533,6 +634,93 @@ window.onclick = function(event) {
 document.addEventListener('keydown', function(event) {
   if (event.key === 'Escape') {
     closeDeleteModal();
+  }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  const qrImage = document.getElementById('event-qr-code');
+  const copyQrButton = document.getElementById('copy-qr-button');
+  const copyLinkButton = document.getElementById('copy-link-button');
+  const downloadQrButton = document.getElementById('download-qr-button');
+
+  async function copyQrToClipboard(button) {
+    if (!qrImage) {
+      return;
+    }
+
+    try {
+      if (navigator.clipboard && window.ClipboardItem) {
+        const response = await fetch(qrImage.src);
+        const blob = await response.blob();
+        await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+        showTemporaryConfirmation(copyQrButton, 'Copied!');
+        return;
+      }
+      throw new Error('Clipboard image copy not supported');
+    } catch (error) {
+      if (button?.dataset?.shareUrl && navigator.clipboard) {
+        try {
+          await navigator.clipboard.writeText(button.dataset.shareUrl);
+          showTemporaryConfirmation(button, 'Link Copied!');
+          return;
+        } catch (linkCopyError) {
+          console.error(linkCopyError);
+        }
+      }
+      alert('Unable to copy automatically. Please right-click the QR code to copy or save it.');
+    }
+  }
+
+  async function copyLinkToClipboard(button) {
+    if (!button?.dataset?.shareUrl) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(button.dataset.shareUrl);
+      showTemporaryConfirmation(button, 'Link Copied!');
+    } catch (error) {
+      console.error(error);
+      alert('Unable to copy the link automatically. Please copy it manually.');
+    }
+  }
+
+  function showTemporaryConfirmation(button, message) {
+    if (!button) {
+      return;
+    }
+
+    const originalText = button.textContent;
+    button.textContent = message;
+    button.disabled = true;
+
+    setTimeout(() => {
+      button.textContent = originalText;
+      button.disabled = false;
+    }, 2000);
+  }
+
+  if (copyQrButton) {
+    copyQrButton.addEventListener('click', function() {
+      copyQrToClipboard(copyQrButton);
+    });
+  }
+
+  if (copyLinkButton) {
+    copyLinkButton.addEventListener('click', function() {
+      copyLinkToClipboard(copyLinkButton);
+    });
+  }
+
+  if (downloadQrButton && qrImage) {
+    downloadQrButton.addEventListener('click', function() {
+      const link = document.createElement('a');
+      link.href = qrImage.src;
+      link.download = `event-qr-${qrImage.alt.replace(/\s+/g, '-').toLowerCase()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
   }
 });
 </script>

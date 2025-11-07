@@ -22,6 +22,9 @@ gem "solid_cache"
 gem "solid_queue"
 gem "solid_cable"
 
+# Utilities
+gem "rqrcode", "~> 2.2"
+
 # Deployment & perf helpers
 gem "kamal", require: false
 gem "thruster", require: false
