@@ -21,6 +21,9 @@ Rails.application.routes.draw do
   # your custom collection page remains
   get '/calendars/home(/:date)', to: 'calendars#home', as: :home
 
+  # organization structure
+  get '/organization', to: 'organization#index', as: :organization
+
   # use resources for the standard parts whose helper names you already use
   resources :calendars, only: %i[new create edit]
 
