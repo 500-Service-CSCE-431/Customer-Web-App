@@ -53,19 +53,6 @@
           </div>
           <div class="info-value"><%= @calendar.location.present? ? @calendar.location : 'No location specified' %></div>
         </div>
-
-        <% if admin_user? %>
-          <div class="info-section">
-            <div class="info-label">
-              <span class="label-icon">👥</span>
-              Current Signups
-            </div>
-            <div class="info-value">
-              <%= @calendar.signup_count %>
-              <span class="signup-label">member<%= 's' unless @calendar.signup_count == 1 %> registered</span>
-            </div>
-          </div>
-        <% end %>
       </div>
 
       <% if admin_user? %>
@@ -81,6 +68,9 @@
             </button>
             <button type="button" class="action-button qr-download-button" id="download-qr-button">
               Download PNG
+            </button>
+            <button type="button" class="action-button qr-link-button" id="copy-link-button" data-share-url="<%= calendar_share_url(@calendar) %>">
+              Copy Event Link
             </button>
           </div>
         </div>
@@ -240,13 +230,6 @@ body {
   margin-left: 32px;
 }
 
-.signup-label {
-  display: inline-block;
-  margin-left: 8px;
-  font-size: 1.1rem;
-  color: #3c4043;
-}
-
 .time-info {
   color: #5f6368;
   font-weight: 500;
@@ -326,6 +309,18 @@ body {
   background: #2196f3;
   color: white;
   box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.qr-link-button {
+  background: transparent;
+  color: #5f6368;
+  border-color: #dadce0;
+}
+
+.qr-link-button:hover {
+  background: #f8f9fa;
+  color: #3c4043;
+  border-color: #5f6368;
 }
 
 .action-buttons {
@@ -645,6 +640,7 @@ document.addEventListener('keydown', function(event) {
 document.addEventListener('DOMContentLoaded', function() {
   const qrImage = document.getElementById('event-qr-code');
   const copyQrButton = document.getElementById('copy-qr-button');
+  const copyLinkButton = document.getElementById('copy-link-button');
   const downloadQrButton = document.getElementById('download-qr-button');
 
   async function copyQrToClipboard(button) {
@@ -662,7 +658,30 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       throw new Error('Clipboard image copy not supported');
     } catch (error) {
+      if (button?.dataset?.shareUrl && navigator.clipboard) {
+        try {
+          await navigator.clipboard.writeText(button.dataset.shareUrl);
+          showTemporaryConfirmation(button, 'Link Copied!');
+          return;
+        } catch (linkCopyError) {
+          console.error(linkCopyError);
+        }
+      }
       alert('Unable to copy automatically. Please right-click the QR code to copy or save it.');
+    }
+  }
+
+  async function copyLinkToClipboard(button) {
+    if (!button?.dataset?.shareUrl) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(button.dataset.shareUrl);
+      showTemporaryConfirmation(button, 'Link Copied!');
+    } catch (error) {
+      console.error(error);
+      alert('Unable to copy the link automatically. Please copy it manually.');
     }
   }
 
@@ -684,6 +703,12 @@ document.addEventListener('DOMContentLoaded', function() {
   if (copyQrButton) {
     copyQrButton.addEventListener('click', function() {
       copyQrToClipboard(copyQrButton);
+    });
+  }
+
+  if (copyLinkButton) {
+    copyLinkButton.addEventListener('click', function() {
+      copyLinkToClipboard(copyLinkButton);
     });
   }
 

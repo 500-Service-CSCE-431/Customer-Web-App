@@ -11,15 +11,15 @@ class Calendar < ApplicationRecord
   validate :event_date_must_be_in_future
 
   def signed_up_users
-    signups.includes(:admin)
+    event_signups.includes(:calendar)
   end
 
   def signup_count
-    signups.count
+    event_signups.count
   end
 
   def user_signed_up?(user_email)
-    signups.joins(:admin).exists?(admins: { email: user_email })
+    event_signups.exists?(user_email: user_email)
   end
 
   private
