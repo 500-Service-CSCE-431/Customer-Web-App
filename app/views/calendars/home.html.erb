@@ -146,7 +146,7 @@
             <% @calendar_days.each_slice(7) do |week| %>
               <div class="calendar-week">
                 <% week.each do |day| %>
-                  <div class="calendar-day <%= 'other-month' if day[:other_month] %> <%= 'today' if day[:today] %>">
+                  <div class="calendar-day <%= 'other-month' if day[:other_month] %>" data-date="<%= day[:date].strftime('%Y-%m-%d') %>">
                     <div class="day-number"><%= day[:date].day %></div>
                     <div class="events">
                       <% day[:events].each do |event| %>
@@ -733,3 +733,23 @@ body {
   }
 }
 </style>
+
+<script>
+// Mark "today" based on user's local timezone (not server UTC time)
+document.addEventListener('DOMContentLoaded', function() {
+  // Get today's date in the user's local timezone
+  const today = new Date();
+  const todayString = today.getFullYear() + '-' + 
+                      String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                      String(today.getDate()).padStart(2, '0');
+  
+  // Find all calendar days and mark the one matching today
+  const calendarDays = document.querySelectorAll('.calendar-day[data-date]');
+  calendarDays.forEach(function(day) {
+    const dayDate = day.getAttribute('data-date');
+    if (dayDate === todayString) {
+      day.classList.add('today');
+    }
+  });
+});
+</script>

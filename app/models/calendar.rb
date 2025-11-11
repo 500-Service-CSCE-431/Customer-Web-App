@@ -27,9 +27,29 @@ class Calendar < ApplicationRecord
   def event_date_must_be_in_future
     return unless event_date.present?
 
-    # Allow same day events - only reject events in the past
-    return unless event_date < Time.current
-
-    errors.add(:event_date, 'must be in the future')
+    # CRITICAL TIMEZONE ISSUE FIX:
+    # datetime-local inputs have no timezone info, but represent user's local time
+    # Rails server is in UTC, so date comparisons can fail due to timezone differences
+    # Example: User in UTC-6 selects Nov 10 11:30 PM, but server sees Nov 11 in UTC
+    # Solution: Allow events from "yesterday" (server time) onwards to handle timezone edge cases
+    
+    event_time = event_date.to_time
+    current_time = Time.current
+    
+    # Compare dates (not times) to handle timezone differences
+    event_date_only = event_time.to_date
+    current_date_only = current_time.to_date
+    yesterday_date = current_date_only - 1.day
+    
+    # Allow events from yesterday onwards (very permissive to handle timezone issues)
+    # This allows users in timezones behind UTC to create events for "today" in their timezone
+    # even if the server date is already "tomorrow" in UTC
+    if event_date_only >= yesterday_date
+      # Event is yesterday, today, or in the future - allow it
+      return
+    end
+    
+    # Only reject events that are clearly 2+ days in the past
+    errors.add(:event_date, "must be from yesterday onwards. Selected date (#{event_date_only.strftime('%B %d, %Y')}) is too far in the past.")
   end
 end
