@@ -27,9 +27,7 @@ Admins can create events, export attendance, view analytics, and manage member e
 ```bash
 git clone https://github.com/500-Service-CSCE-431/Customer-Web-App.git
 cd Customer-Web-App
-bundle install
-rails db:create db:migrate db:seed
-bin/rails s
+docker compose up --build
 ````
 
 Then visit **[http://localhost:3000](http://localhost:3000)** in your browser.
