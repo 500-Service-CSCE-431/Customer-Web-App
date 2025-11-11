@@ -27,4 +27,19 @@ module CalendarsHelper
     )
     "data:image/png;base64,#{Base64.strict_encode64(png.to_s)}"
   end
+
+  def can_leave_feedback?(calendar)
+    return false unless user_signed_in?
+    return false unless calendar.event_date.past?
+
+    calendar.signups.exists?(admin_id: current_user.id)
+  end
+
+  def feedback_button_label(feedback)
+    feedback.present? ? 'Update Feedback' : 'Leave Feedback'
+  end
+
+  def feedback_modal_title(feedback)
+    feedback.present? ? 'Update Your Feedback' : 'Leave Feedback'
+  end
 end

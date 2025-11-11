@@ -25,6 +25,7 @@
             <% if user_signed_in? %>
               <%= link_to "Sign Out", destroy_admin_session_path, method: :delete, class: "sign-out-btn" %>
               <% if admin_user? %>
+                <%= link_to "Feedback", admin_feedbacks_path, class: "about-btn feedback-btn" %>
                 <%= link_to admin_management_path, class: "admin-menu-btn", title: "Admin Management" do %>
                   <span class="hamburger-icon">☰</span>
                 <% end %>
@@ -382,18 +383,23 @@ body {
 .header-actions { display: flex; align-items: center; gap: 15px; }
 
 .about-btn {
-  background: transparent;
-  color: #d81b60;
-  padding: 8px 16px;
-  border-radius: 20px;
+  color: #5f6368;
   text-decoration: none;
+  padding: 10px 20px;
+  border: 2px solid #dadce0;
+  border-radius: 50px;
+  font-size: 0.9rem;
   font-weight: 500;
-  border: 2px solid #d81b60;
   transition: all 0.3s ease;
+  background: white;
 }
 .about-btn:hover {
-  background: #d81b60; color: white; transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(216,27,96,0.3); text-decoration: none;
+  background: #ffccd5;
+  border-color: #ff8fab;
+  color: #d81b60;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255,143,171,0.2);
+  text-decoration: none;
 }
 
 .admin-menu-btn {

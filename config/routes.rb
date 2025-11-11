@@ -25,7 +25,9 @@ Rails.application.routes.draw do
   get '/organization', to: 'organization#index', as: :organization
 
   # use resources for the standard parts whose helper names you already use
-  resources :calendars, only: %i[new create edit]
+  resources :calendars, only: %i[new create edit] do
+    resources :event_feedbacks, only: :create, shallow: true
+  end
 
   # keep your custom helper names for the others
   get    '/calendars/:id',             to: 'calendars#show',    as: :show_calendar
@@ -43,6 +45,9 @@ Rails.application.routes.draw do
 
   # CSV export route
   get '/calendars/:id/export', to: 'calendars#export', as: :export_calendar
+
+  # Admin feedback management
+  get '/admin/feedbacks', to: 'event_feedbacks#index', as: :admin_feedbacks
 
   # About page
   get '/about', to: 'calendars#about', as: :about

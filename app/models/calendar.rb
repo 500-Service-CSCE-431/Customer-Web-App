@@ -3,16 +3,13 @@
 class Calendar < ApplicationRecord
   has_many :signups, dependent: :destroy
   has_many :signed_up_users, through: :signups, source: :admin
+  has_many :event_feedbacks, dependent: :destroy
 
   validates :title, presence: true
   validates :event_date, presence: true
   validates :description, presence: true
   validates :category, presence: true, inclusion: { in: ['Service', 'Bush School', 'Social'] }
   validate :event_date_must_be_in_future
-
-  def signed_up_users
-    signups.includes(:admin)
-  end
 
   def signup_count
     signups.count
