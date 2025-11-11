@@ -9,60 +9,83 @@ class AdminManagementController < ApplicationController
   end
 
   def create_admin
-    email = params[:email]&.strip&.downcase
+    email = normalize_email(params[:email])
+    return handle_blank_email if email.blank?
+    return handle_existing_admin(email) if admin_exists?(email)
+    return handle_invalid_email(email) unless valid_email_format?(email)
 
-    if email.blank?
-      flash[:alert] = 'Email cannot be blank.'
-      redirect_to admin_management_path and return
-    end
-
-    # Check if admin already exists
-    if Admin.exists?(['LOWER(email) = ?', email])
-      flash[:alert] = "Admin with email #{email} already exists."
-      redirect_to admin_management_path and return
-    end
-
-    # Validate email format
-    unless email.match?(/\A[\w+\-.]+@[a-z\d-]+(\.[a-z\d-]+)*\.[a-z]+\z/i)
-      flash[:alert] = 'Invalid email format.'
-      redirect_to admin_management_path and return
-    end
-
-    # Create new admin
-    begin
-      Admin.create!(
-        email: email,
-        full_name: email.split('@').first.titleize,
-        uid: SecureRandom.hex(10),
-        encrypted_password: 'pending_oauth',
-        role: 'admin'
-      )
-      flash[:success] = "Admin #{email} has been added successfully."
-    rescue StandardError => e
-      flash[:alert] = "Error creating admin: #{e.message}"
-    end
-
+    create_new_admin(email)
     redirect_to admin_management_path
   end
 
   def remove_admin
     admin = Admin.find(params[:id])
+    return handle_cannot_remove_last_admin if last_admin?
+    return handle_cannot_remove_self(admin) if admin == current_admin
 
-    # Prevent removing the last admin
-    if Admin.count <= 1
-      flash[:alert] = 'Cannot remove the last admin.'
-      redirect_to admin_management_path and return
-    end
+    remove_admin_safely(admin)
+    redirect_to admin_management_path
+  end
 
-    # Prevent admin from removing themselves
-    if admin == current_admin
-      flash[:alert] = 'You cannot remove yourself as an admin.'
-      redirect_to admin_management_path and return
-    end
+  private
 
+  def normalize_email(email)
+    email&.strip&.downcase
+  end
+
+  def admin_exists?(email)
+    Admin.exists?(['LOWER(email) = ?', email])
+  end
+
+  def valid_email_format?(email)
+    email.match?(/\A[\w+\-.]+@[a-z\d-]+(\.[a-z\d-]+)*\.[a-z]+\z/i)
+  end
+
+  def last_admin?
+    Admin.count <= 1
+  end
+
+  def handle_blank_email
+    flash[:alert] = 'Email cannot be blank.'
+    redirect_to admin_management_path
+  end
+
+  def handle_existing_admin(email)
+    flash[:alert] = "Admin with email #{email} already exists."
+    redirect_to admin_management_path
+  end
+
+  def handle_invalid_email(_email)
+    flash[:alert] = 'Invalid email format.'
+    redirect_to admin_management_path
+  end
+
+  def create_new_admin(email)
+    Admin.create!(
+      email: email,
+      full_name: email.split('@').first.titleize,
+      uid: SecureRandom.hex(10),
+      encrypted_password: 'pending_oauth',
+      role: 'admin'
+    )
+    flash[:success] = "Admin #{email} has been added successfully."
+  rescue StandardError => e
+    flash[:alert] = "Error creating admin: #{e.message}"
+  end
+
+  def handle_cannot_remove_last_admin
+    flash[:alert] = 'Cannot remove the last admin.'
+    redirect_to admin_management_path
+  end
+
+  def handle_cannot_remove_self(_admin)
+    flash[:alert] = 'You cannot remove yourself as an admin.'
+    redirect_to admin_management_path
+  end
+
+  def remove_admin_safely(admin)
     email = admin.email
     admin.destroy
     flash[:success] = "Admin #{email} has been removed successfully."
-    redirect_to admin_management_path
   end
 end

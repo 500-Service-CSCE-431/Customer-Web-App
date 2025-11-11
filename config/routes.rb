@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
-  get 'admin_management/index'
-  get 'admin_management/create_admin'
-  get 'admin_management/remove_admin'
   root 'calendars#home'
 
   devise_for :admins, controllers: { omniauth_callbacks: 'admins/omniauth_callbacks' }

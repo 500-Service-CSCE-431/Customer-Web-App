@@ -10,4 +10,3 @@ class EventFeedback < ApplicationRecord
 
   scope :ordered, -> { order(submitted_at: :desc) }
 end
-
