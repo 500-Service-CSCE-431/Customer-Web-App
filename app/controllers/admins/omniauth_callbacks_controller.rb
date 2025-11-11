@@ -4,20 +4,9 @@ module Admins
   class OmniauthCallbacksController < Devise::OmniauthCallbacksController
     def google_oauth2
       admin = Admin.from_google(**from_google_params)
+      return handle_auth_failure unless admin.present?
 
-      if admin.present?
-        sign_out_all_scopes
-        flash[:success] = if admin.admin?
-                            "Welcome back, #{admin.full_name}! You're signed in as an admin."
-                          else
-                            "Welcome #{admin.full_name}! You're signed in as a member."
-                          end
-        sign_in_and_redirect admin, event: :authentication
-      else
-        # This should not happen anymore since we create users automatically
-        flash[:error] = 'Authentication failed. Please try again.'
-        redirect_to new_admin_session_path
-      end
+      handle_successful_auth(admin)
     end
 
     protected
@@ -43,6 +32,25 @@ module Admins
 
     def auth
       @auth ||= request.env['omniauth.auth']
+    end
+
+    def handle_successful_auth(admin)
+      sign_out_all_scopes
+      flash[:success] = welcome_message(admin)
+      sign_in_and_redirect admin, event: :authentication
+    end
+
+    def welcome_message(admin)
+      if admin.admin?
+        "Welcome back, #{admin.full_name}! You're signed in as an admin."
+      else
+        "Welcome #{admin.full_name}! You're signed in as a member."
+      end
+    end
+
+    def handle_auth_failure
+      flash[:error] = 'Authentication failed. Please try again.'
+      redirect_to new_admin_session_path
     end
   end
 end

@@ -22,3 +22,22 @@ Style/Documentation:
 Metrics/BlockLength:
   Exclude:
     - 'spec/**/*_spec.rb'
+    - 'config/routes.rb'
+
+Metrics/MethodLength:
+  Exclude:
+    - 'db/migrate/**/*'
+
+Metrics/ClassLength:
+  Exclude:
+    - 'app/controllers/calendars_controller.rb'
+
+Layout/LineLength:
+  Exclude:
+    - 'config/initializers/devise.rb'
+  AllowedPatterns:
+    - '\s*#'
+
+Lint/EmptyBlock:
+  Exclude:
+    - 'spec/factories/**/*'

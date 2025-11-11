@@ -121,4 +121,4 @@ secrets/
 
 # Ignore any output files
 output.html
-*.html
+*.htmlrspec_results.json

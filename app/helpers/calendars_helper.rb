@@ -16,7 +16,12 @@ module CalendarsHelper
 
   def calendar_qr_code_data_uri(calendar)
     qrcode = RQRCode::QRCode.new(calendar_share_url(calendar))
-    png = qrcode.as_png(
+    png = generate_qr_png(qrcode)
+    "data:image/png;base64,#{Base64.strict_encode64(png.to_s)}"
+  end
+
+  def generate_qr_png(qrcode)
+    qrcode.as_png(
       bit_depth: 1,
       border_modules: 2,
       color_mode: ChunkyPNG::COLOR_GRAYSCALE,
@@ -25,7 +30,6 @@ module CalendarsHelper
       module_px_size: 6,
       size: 240
     )
-    "data:image/png;base64,#{Base64.strict_encode64(png.to_s)}"
   end
 
   def can_leave_feedback?(calendar)
