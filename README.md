@@ -79,7 +79,7 @@ heroku pg:backups:restore 'https://path/to/backup.dump' DATABASE_URL -a customer
 
 ## Admin Access
 
-Admins are identified by the `role` field in the `users` table.
+Admins are identified by the `role` field in the `admin` table.
 Only Admins can add, edit, or delete events and view attendance reports.
 Regular members can sign up for events, check in via QR code, and view their dashboard.
 
