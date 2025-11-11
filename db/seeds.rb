@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'securerandom'
+
 # This file should ensure the existence of records required to run the application in every environment (production,
 # development, test). The code here should be idempotent so that it can be executed at any point in every environment.
 # The data can then be loaded with the bin/rails db:seed command (or created alongside the database with db:setup).
@@ -53,6 +55,27 @@ if Rails.env.development?
     calendar.description = 'Community park cleanup volunteer event'
     calendar.location = 'City Park'
     calendar.category = 'Service'
+  end
+
+  # Seed a past event for feedback testing
+  feedback_tester = Admin.find_or_create_by!(email: 'isaacgeng2004@gmail.com') do |admin|
+    admin.full_name = 'Isaac Geng (Member)'
+    admin.role = 'member'
+    admin.uid = SecureRandom.uuid
+    admin.encrypted_password = 'oauth_user'
+  end
+
+  past_event = Calendar.find_or_initialize_by(title: 'Past Feedback Test Event')
+  past_event.assign_attributes(
+    event_date: 2.weeks.ago.change(hour: 18, min: 0),
+    description: 'Seeded event in the past for validating the feedback workflow.',
+    location: 'Development Lab',
+    category: 'Social'
+  )
+  past_event.save!(validate: false)
+
+  Signup.find_or_initialize_by(calendar: past_event, admin: feedback_tester).tap do |signup|
+    signup.save!(validate: false)
   end
 
   puts 'Development data created successfully! (5 sample calendar events)'
