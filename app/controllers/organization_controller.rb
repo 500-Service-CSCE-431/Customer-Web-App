@@ -14,4 +14,3 @@ class OrganizationController < ApplicationController
     redirect_to home_path, alert: 'You must sign in to view the organization directory.' unless admin_signed_in?
   end
 end
-
