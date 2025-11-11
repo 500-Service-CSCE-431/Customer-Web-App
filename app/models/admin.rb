@@ -5,6 +5,7 @@ class Admin < ApplicationRecord
 
   has_many :signups, dependent: :destroy
   has_many :signed_up_events, through: :signups, source: :calendar
+  has_many :event_feedbacks, dependent: :destroy
 
   # Role validations
   validates :role, presence: true, inclusion: { in: %w[member admin] }

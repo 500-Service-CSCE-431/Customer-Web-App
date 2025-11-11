@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_21_032438) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_11_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -42,6 +42,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_21_032438) do
     t.string "category"
     t.bigint "user_id"
     t.index ["user_id"], name: "index_calendars_on_user_id"
+  end
+
+  create_table "event_feedbacks", force: :cascade do |t|
+    t.bigint "calendar_id", null: false
+    t.bigint "admin_id", null: false
+    t.text "comments", null: false
+    t.datetime "submitted_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["admin_id"], name: "index_event_feedbacks_on_admin_id"
+    t.index ["calendar_id", "admin_id"], name: "index_event_feedbacks_on_calendar_id_and_admin_id", unique: true
+    t.index ["calendar_id"], name: "index_event_feedbacks_on_calendar_id"
   end
 
   create_table "event_signups", force: :cascade do |t|
@@ -96,6 +108,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_21_032438) do
   end
 
   add_foreign_key "calendars", "users"
+  add_foreign_key "event_feedbacks", "admins"
+  add_foreign_key "event_feedbacks", "calendars"
   add_foreign_key "event_signups", "calendars"
   add_foreign_key "registrations", "calendars"
   add_foreign_key "registrations", "users"

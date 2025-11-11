@@ -69,6 +69,9 @@ class CalendarsController < ApplicationController
 
   def show
     @calendar = Calendar.find(params[:id])
+    return unless user_signed_in?
+
+    @event_feedback = @calendar.event_feedbacks.find_by(admin: current_user)
   end
 
   def about
