@@ -102,7 +102,13 @@ class CalendarsController < ApplicationController
       flash[:notice] = 'Calendar Event Added!'
       redirect_to home_path
     else
-      flash[:notice] = 'One or more fields not filled. Try again!'
+      # Display specific validation errors if available, otherwise show generic message
+      if @calendar.errors.any?
+        error_messages = @calendar.errors.full_messages.join(', ')
+        flash[:notice] = error_messages
+      else
+        flash[:notice] = 'One or more fields not filled. Try again!'
+      end
       redirect_to new_calendar_url
     end
   end
