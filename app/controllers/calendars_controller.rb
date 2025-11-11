@@ -7,68 +7,16 @@ class CalendarsController < ApplicationController
   before_action :require_admin!, only: %i[new create edit update delete destroy]
 
   def home
-    # Handle date parameter for navigation
-    @current_date = if params[:date].present?
-                      Date.parse("#{params[:date]}-01")
-                    else
-                      Date.current
-                    end
-
-    # Get start and end of month
-    month_start = @current_date.beginning_of_month
-    month_end = @current_date.end_of_month
-
-    # Get calendar start (beginning of week containing month start)
-    calendar_start = month_start.beginning_of_week(:sunday)
-    calendar_end = month_end.end_of_week(:sunday)
-
-    # Get all events for the visible calendar period
-    @events = Calendar.where(event_date: calendar_start..calendar_end)
-
-    # Apply category filtering
-    @selected_categories = params[:categories] || []
-    if @selected_categories.present? && @selected_categories.any?(&:present?)
-      @events = @events.where(category: @selected_categories)
-    end
-
-    # Build calendar days array
-    @calendar_days = []
-    current_date = calendar_start
-
-    while current_date <= calendar_end
-      day_events = @events.select { |event| event.event_date.to_date == current_date }
-
-      @calendar_days << {
-        date: current_date,
-        events: day_events,
-        other_month: current_date.month != @current_date.month,
-        today: current_date == Date.current
-      }
-
-      current_date += 1.day
-    end
-
-    # Available categories for filtering
-    @available_categories = ['Service', 'Bush School', 'Social']
-
-    # Dashboard data for signed-in users
-    return unless user_signed_in?
-
-    # Past events user attended (events that have already occurred)
-    @past_events = current_user.signed_up_events
-                               .where('event_date < ?', Time.current)
-                               .order(event_date: :desc)
-                               .limit(10)
-
-    # Future events user is signed up for
-    @upcoming_events = current_user.signed_up_events
-                                   .where('event_date >= ?', Time.current)
-                                   .order(:event_date)
-                                   .limit(10)
+    @current_date = parse_current_date
+    setup_calendar_view
+    load_user_dashboard_data if user_signed_in?
   end
 
   def show
     @calendar = Calendar.find(params[:id])
+    return unless user_signed_in?
+
+    @event_feedback = @calendar.event_feedbacks.find_by(admin: current_user)
   end
 
   def about
@@ -96,11 +44,9 @@ class CalendarsController < ApplicationController
     @calendar = Calendar.new(calendar_params)
 
     if @calendar.save
-      flash[:notice] = 'Calendar Event Added!'
-      redirect_to home_path
+      handle_successful_create
     else
-      flash[:notice] = 'One or more fields not filled. Try again!'
-      redirect_to new_calendar_url
+      handle_failed_create
     end
   end
   #----------------------------------------------------------------------------#
@@ -141,27 +87,115 @@ class CalendarsController < ApplicationController
     require 'csv'
 
     CSV.generate do |csv|
-      # Event details header
-      csv << ['Event Details']
-      csv << ['Title', @calendar.title]
-      csv << ['Date', @calendar.event_date.strftime('%B %d, %Y at %I:%M %p')]
-      csv << ['Category', @calendar.category]
-      csv << ['Location', @calendar.location]
-      csv << ['Description', @calendar.description]
-      csv << [] # Empty row
+      add_event_details_to_csv(csv)
+      add_signups_to_csv(csv)
+    end
+  end
 
-      # Signups header
-      csv << ['Signups']
-      csv << ['Name', 'Email', 'Signed Up At']
+  def parse_current_date
+    return Date.parse("#{params[:date]}-01") if params[:date].present?
 
-      # Signup data
-      @calendar.signups.includes(:admin).each do |signup|
-        csv << [
-          signup.admin.full_name,
-          signup.admin.email,
-          signup.created_at.strftime('%B %d, %Y at %I:%M %p')
-        ]
-      end
+    Date.current
+  end
+
+  def setup_calendar_view
+    month_start = @current_date.beginning_of_month
+    month_end = @current_date.end_of_month
+    calendar_start = month_start.beginning_of_week(:sunday)
+    calendar_end = month_end.end_of_week(:sunday)
+
+    @events = load_filtered_events(calendar_start, calendar_end)
+    @calendar_days = build_calendar_days(calendar_start, calendar_end)
+    @available_categories = ['Service', 'Bush School', 'Social']
+  end
+
+  def load_filtered_events(calendar_start, calendar_end)
+    events = Calendar.where(event_date: calendar_start..calendar_end)
+    @selected_categories = params[:categories] || []
+    return events unless @selected_categories.present? && @selected_categories.any?(&:present?)
+
+    events.where(category: @selected_categories)
+  end
+
+  def build_calendar_days(calendar_start, calendar_end)
+    calendar_days = []
+    current_date = calendar_start
+
+    while current_date <= calendar_end
+      calendar_days << build_calendar_day(current_date)
+      current_date += 1.day
+    end
+
+    calendar_days
+  end
+
+  def build_calendar_day(current_date)
+    day_events = @events.select { |event| event.event_date.to_date == current_date }
+    {
+      date: current_date,
+      events: day_events,
+      other_month: current_date.month != @current_date.month,
+      today: current_date == Date.current
+    }
+  end
+
+  def load_user_dashboard_data
+    @past_events = load_past_events
+    @upcoming_events = load_upcoming_events
+  end
+
+  def load_past_events
+    current_user.signed_up_events
+                .where('event_date < ?', Time.current)
+                .order(event_date: :desc)
+                .limit(10)
+  end
+
+  def load_upcoming_events
+    current_user.signed_up_events
+                .where('event_date >= ?', Time.current)
+                .order(:event_date)
+                .limit(10)
+  end
+
+  def handle_successful_create
+    flash[:notice] = 'Calendar Event Added!'
+    redirect_to home_path
+  end
+
+  def handle_failed_create
+    error_msg = build_error_message
+    flash[:notice] = error_msg
+    redirect_to new_calendar_url
+  end
+
+  def build_error_message
+    if @calendar.errors.any?
+      @calendar.errors.full_messages.join(', ')
+    else
+      'One or more fields not filled. Try again!'
+    end
+  end
+
+  def add_event_details_to_csv(csv)
+    csv << ['Event Details']
+    csv << ['Title', @calendar.title]
+    csv << ['Date', @calendar.event_date.strftime('%B %d, %Y at %I:%M %p')]
+    csv << ['Category', @calendar.category]
+    csv << ['Location', @calendar.location]
+    csv << ['Description', @calendar.description]
+    csv << []
+  end
+
+  def add_signups_to_csv(csv)
+    csv << ['Signups']
+    csv << ['Name', 'Email', 'Signed Up At']
+    @calendar.signups.includes(:admin).each do |signup|
+      csv << [
+        signup.admin.full_name,
+        signup.admin.email,
+        signup.created_at.strftime('%B %d, %Y at %I:%M %p')
+      ]
     end
   end
   #----------------------------------------------------------------------------#

@@ -16,7 +16,12 @@ module CalendarsHelper
 
   def calendar_qr_code_data_uri(calendar)
     qrcode = RQRCode::QRCode.new(calendar_share_url(calendar))
-    png = qrcode.as_png(
+    png = generate_qr_png(qrcode)
+    "data:image/png;base64,#{Base64.strict_encode64(png.to_s)}"
+  end
+
+  def generate_qr_png(qrcode)
+    qrcode.as_png(
       bit_depth: 1,
       border_modules: 2,
       color_mode: ChunkyPNG::COLOR_GRAYSCALE,
@@ -25,6 +30,20 @@ module CalendarsHelper
       module_px_size: 6,
       size: 240
     )
-    "data:image/png;base64,#{Base64.strict_encode64(png.to_s)}"
+  end
+
+  def can_leave_feedback?(calendar)
+    return false unless user_signed_in?
+    return false unless calendar.event_date.past?
+
+    calendar.signups.exists?(admin_id: current_user.id)
+  end
+
+  def feedback_button_label(feedback)
+    feedback.present? ? 'Update Feedback' : 'Leave Feedback'
+  end
+
+  def feedback_modal_title(feedback)
+    feedback.present? ? 'Update Your Feedback' : 'Leave Feedback'
   end
 end

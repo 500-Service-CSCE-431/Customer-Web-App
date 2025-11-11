@@ -55,6 +55,21 @@
         </div>
       </div>
 
+      <% if can_leave_feedback?(@calendar) %>
+        <div class="feedback-callout">
+          <div class="feedback-callout-text">
+            <div class="feedback-icon">💬</div>
+            <div>
+              <h3>Share Your Experience</h3>
+              <p>Your insight helps us improve future events.</p>
+            </div>
+          </div>
+          <button type="button" class="action-button feedback-button" onclick="openFeedbackModal()">
+            <%= feedback_button_label(@event_feedback) %>
+          </button>
+        </div>
+      <% end %>
+
       <% if admin_user? %>
         <div class="qr-section">
           <h2 class="qr-title">Shareable QR Code</h2>
@@ -114,6 +129,36 @@
     </div>
   </div>
 </div>
+
+<% if can_leave_feedback?(@calendar) %>
+  <div id="feedbackModal" class="modal">
+    <div class="modal-content feedback-modal-content">
+      <div class="modal-header feedback-modal-header">
+        <h3><%= feedback_modal_title(@event_feedback) %></h3>
+        <span class="close" onclick="closeFeedbackModal()">&times;</span>
+      </div>
+      <div class="modal-body feedback-modal-body">
+        <%= form_with scope: :event_feedback,
+                      url: calendar_event_feedbacks_path(@calendar),
+                      method: :post do |form| %>
+          <div class="form-group">
+            <%= form.label :comments, 'Your Feedback', class: 'feedback-label' %>
+            <%= form.text_area :comments,
+                               value: @event_feedback&.comments,
+                               required: true,
+                               rows: 6,
+                               class: 'feedback-textarea',
+                               placeholder: 'Tell us what went well and how we can improve.' %>
+          </div>
+          <div class="modal-footer feedback-modal-footer">
+            <button type="button" class="modal-btn cancel-btn" onclick="closeFeedbackModal()">Cancel</button>
+            <button type="submit" class="modal-btn submit-btn"><%= feedback_button_label(@event_feedback) %></button>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+<% end %>
 
 <style>
 body {
@@ -228,6 +273,120 @@ body {
   color: #3c4043;
   line-height: 1.5;
   margin-left: 32px;
+}
+
+.signup-label {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 1.1rem;
+  color: #3c4043;
+}
+
+.feedback-callout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 20px 0 30px 0;
+  padding: 20px 24px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 143, 171, 0.2);
+  background: rgba(255, 204, 213, 0.25);
+}
+
+.feedback-callout-text {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.feedback-callout-text h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.2rem;
+  color: #d81b60;
+  font-weight: 500;
+}
+
+.feedback-callout-text p {
+  margin: 0;
+  color: #5f6368;
+  font-size: 0.95rem;
+}
+
+.feedback-icon {
+  font-size: 1.8rem;
+}
+
+.feedback-button {
+  background: linear-gradient(135deg, #7e57c2 0%, #9575cd 100%);
+  color: white;
+  border-color: #7e57c2;
+}
+
+.feedback-button:hover {
+  background: linear-gradient(135deg, #6a47b0 0%, #7e57c2 100%);
+  box-shadow: 0 4px 12px rgba(126, 87, 194, 0.3);
+}
+
+.feedback-modal-content {
+  max-width: 600px;
+  width: min(90%, 520px);
+  margin: 12% auto;
+}
+
+.feedback-modal-header {
+  background: linear-gradient(135deg, #7e57c2 0%, #9575cd 100%);
+}
+
+.feedback-modal-header h3 {
+  color: white;
+}
+
+.feedback-modal-body {
+  padding: 30px 24px;
+  text-align: left;
+}
+
+.feedback-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #3c4043;
+}
+
+.feedback-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 12px;
+  border: 1px solid #dadce0;
+  padding: 14px 18px;
+  font-family: inherit;
+  font-size: 1rem;
+  resize: vertical;
+  min-height: 150px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feedback-textarea:focus {
+  outline: none;
+  border-color: #7e57c2;
+  box-shadow: 0 0 0 3px rgba(126, 87, 194, 0.2);
+}
+
+.feedback-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.submit-btn {
+  background: linear-gradient(135deg, #7e57c2 0%, #9575cd 100%);
+  color: white;
+  border-color: #7e57c2;
+}
+
+.submit-btn:hover {
+  background: linear-gradient(135deg, #6a47b0 0%, #7e57c2 100%);
+  box-shadow: 0 4px 12px rgba(126, 87, 194, 0.3);
 }
 
 .time-info {
@@ -472,8 +631,9 @@ body {
 
 .modal-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
+  position: relative;
   padding: 25px 30px;
   border-bottom: 2px solid #ffccd5;
   background: linear-gradient(135deg, #ff8fab 0%, #ffccd5 100%);
@@ -488,6 +648,10 @@ body {
 }
 
 .close {
+  position: absolute;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
   color: white;
   font-size: 28px;
   font-weight: bold;
@@ -497,7 +661,7 @@ body {
 
 .close:hover {
   color: #ff6b92;
-  transform: scale(1.1);
+  transform: translateY(-50%) scale(1.1);
 }
 
 .modal-body {
@@ -590,6 +754,20 @@ body {
     margin-left: 0;
     margin-top: 10px;
   }
+
+  .feedback-callout {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .feedback-callout-text {
+    justify-content: center;
+  }
+
+  .feedback-button {
+    width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
@@ -628,12 +806,18 @@ window.onclick = function(event) {
   if (event.target == modal) {
     closeDeleteModal();
   }
+
+  const feedbackModal = document.getElementById('feedbackModal');
+  if (event.target === feedbackModal) {
+    closeFeedbackModal();
+  }
 }
 
 // Close modal with Escape key
 document.addEventListener('keydown', function(event) {
   if (event.key === 'Escape') {
     closeDeleteModal();
+    closeFeedbackModal();
   }
 });
 
@@ -723,4 +907,27 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+
+function openFeedbackModal() {
+  const modal = document.getElementById('feedbackModal');
+  if (!modal) {
+    return;
+  }
+  modal.style.display = 'block';
+  document.body.style.overflow = 'hidden';
+
+  const textarea = modal.querySelector('.feedback-textarea');
+  if (textarea) {
+    textarea.focus();
+  }
+}
+
+function closeFeedbackModal() {
+  const modal = document.getElementById('feedbackModal');
+  if (!modal) {
+    return;
+  }
+  modal.style.display = 'none';
+  document.body.style.overflow = 'auto';
+}
 </script>
