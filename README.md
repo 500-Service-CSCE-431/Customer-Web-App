@@ -1,7 +1,7 @@
-# WHIPS Centralized Event Calendar
+# WIPS Centralized Event Calendar
 
 ## Overview
-A Ruby on Rails web application built for the **Women in Public Service (WHIPS)** organization to centralize event scheduling, member sign-ups, and attendance tracking.  
+A Ruby on Rails web application built for the **Women in Public Service (WIPS)** organization to centralize event scheduling, member sign-ups, and attendance tracking.  
 The system allows users to view upcoming events, register, check in, and view dashboards of past activities.  
 Admins can create events, export attendance, view analytics, and manage member engagement, improving transparency and reducing manual coordination.
 
@@ -120,7 +120,7 @@ bundle exec rspec
 
 For questions, training, or support:
 
-**WHIPS Leadership:** `wipstamu@gmail.com`
+**WIPS Leadership:** `wipstamu@gmail.com`
 **Development Team – Service-500 (CSCE 431):**
 
 * Yuexin Zhang – `zyx-0726@tamu.edu`
