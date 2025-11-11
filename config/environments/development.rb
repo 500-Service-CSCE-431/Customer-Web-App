@@ -71,6 +71,9 @@ Rails.application.configure do
   # config.generators.apply_rubocop_autocorrect_after_generate!
   
   # OAuth credentials should be set via environment variables
+  ENV['GOOGLE_OAUTH_CLIENT_ID'] = "215035772276-6gj01ljvc1v7h7pdivqka7r4oqph83d8.apps.googleusercontent.com"
+
+  ENV['GOOGLE_OAUTH_CLIENT_SECRET'] = "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"
   # ENV['GOOGLE_OAUTH_CLIENT_ID'] = "your_client_id_here"
   # ENV['GOOGLE_OAUTH_CLIENT_SECRET'] = "your_client_secret_here"
 end

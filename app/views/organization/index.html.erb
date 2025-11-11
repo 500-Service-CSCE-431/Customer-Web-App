@@ -1,0 +1,349 @@
+<div class="directory-container">
+  <div class="directory-card">
+    <div class="directory-toolbar">
+      <%= link_to 'Back to Calendar', home_path, class: 'back-button' %>
+    </div>
+    <div class="directory-header">
+      <div class="directory-title">
+        <h1>Organization Directory</h1>
+        <p>Meet the admins and members who keep WIPS running.</p>
+      </div>
+    </div>
+
+    <div class="directory-section">
+      <div class="section-heading">
+        <div class="section-label admin-label">Admins</div>
+        <p class="section-description">Leadership team and primary contacts.</p>
+      </div>
+
+      <div class="profile-grid">
+        <% if @admins.any? %>
+          <% @admins.each do |admin| %>
+            <div class="profile-card admin-card">
+              <div class="profile-avatar">
+                <% if admin.avatar_url.present? %>
+                  <img src="<%= admin.avatar_url %>" alt="<%= admin.full_name %> avatar">
+                <% else %>
+                  <div class="placeholder-avatar"><%= admin.full_name.first.upcase %></div>
+                <% end %>
+              </div>
+              <div class="profile-info">
+                <h3><%= admin.full_name %></h3>
+                <p class="profile-role">Administrator</p>
+                <p class="profile-email"><%= admin.email %></p>
+              </div>
+            </div>
+          <% end %>
+        <% else %>
+          <p class="empty-state">No admins have been added yet.</p>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-dot"></div>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="directory-section">
+      <div class="section-heading">
+        <div class="section-label member-label">Members</div>
+        <p class="section-description">Members and volunteers supporting the mission.</p>
+      </div>
+
+      <div class="profile-grid">
+        <% if @members.any? %>
+          <% @members.each do |member| %>
+            <div class="profile-card member-card">
+              <div class="profile-avatar">
+                <% if member.avatar_url.present? %>
+                  <img src="<%= member.avatar_url %>" alt="<%= member.full_name %> avatar">
+                <% else %>
+                  <div class="placeholder-avatar"><%= member.full_name.first.upcase %></div>
+                <% end %>
+              </div>
+              <div class="profile-info">
+                <h3><%= member.full_name %></h3>
+                <p class="profile-role">Member</p>
+                <p class="profile-email"><%= member.email %></p>
+              </div>
+            </div>
+          <% end %>
+        <% else %>
+          <p class="empty-state">No members are currently listed.</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+body {
+  font-family: 'Roboto', 'Google Sans', Arial, sans-serif;
+  background: linear-gradient(135deg, #ffccd5 0%, #ff8fab 25%, #ffffff 50%, #ffccd5 75%, #ff8fab 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+  margin: 0;
+  padding: 20px;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.directory-container {
+  width: 100%;
+  max-width: 1100px;
+  padding: 20px;
+}
+
+.directory-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 40px;
+}
+
+.directory-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.directory-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 30px;
+  border-bottom: 2px solid #ffccd5;
+  margin-bottom: 30px;
+}
+
+.directory-icon {
+  font-size: 3rem;
+  animation: pulse 2s infinite;
+}
+
+.directory-title h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 300;
+  color: #d81b60;
+}
+
+.directory-title {
+  text-align: center;
+}
+
+.directory-title p {
+  margin: 8px 0 0 0;
+  color: #5f6368;
+  font-size: 1rem;
+}
+
+.back-button {
+  padding: 10px 20px;
+  border-radius: 50px;
+  border: 2px solid #dadce0;
+  color: #5f6368;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.back-button:hover {
+  background: #ffccd5;
+  color: #d81b60;
+  border-color: #ff8fab;
+  box-shadow: 0 4px 12px rgba(255, 143, 171, 0.2);
+}
+
+.directory-section {
+  margin-bottom: 40px;
+}
+
+.section-heading {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.section-label {
+  display: inline-block;
+  padding: 6px 18px;
+  border-radius: 20px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.admin-label {
+  background: rgba(88, 64, 194, 0.15);
+  color: #5840c2;
+}
+
+.member-label {
+  background: rgba(255, 140, 171, 0.2);
+  color: #d81b60;
+}
+
+.section-description {
+  margin: 12px 0 0 0;
+  color: #5f6368;
+  font-size: 0.95rem;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.profile-card {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 20px;
+  background: rgba(255, 204, 213, 0.2);
+  border-radius: 18px;
+  border: 1px solid rgba(255, 143, 171, 0.2);
+  transition: all 0.3s ease;
+}
+
+.profile-card:hover {
+  background: rgba(255, 204, 213, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(255, 143, 171, 0.25);
+}
+
+.profile-card.admin-card {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.25);
+}
+
+.profile-card.admin-card:hover {
+  box-shadow: 0 12px 24px rgba(99, 102, 241, 0.25);
+}
+
+.profile-avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: white;
+  border: 3px solid rgba(216, 27, 96, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-card .profile-avatar {
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.placeholder-avatar {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #d81b60;
+}
+
+.admin-card .placeholder-avatar {
+  color: #6366f1;
+}
+
+.profile-info h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #3c4043;
+  font-weight: 500;
+}
+
+.profile-role {
+  margin: 6px 0 0 0;
+  font-size: 0.85rem;
+  color: #5f6368;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.profile-email {
+  margin: 8px 0 0 0;
+  font-size: 0.9rem;
+  color: #5f6368;
+  word-break: break-word;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 0;
+  color: #5f6368;
+  font-style: italic;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.divider-line {
+  width: 60px;
+  height: 2px;
+  background: #ffccd5;
+}
+
+.divider-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #d81b60;
+  box-shadow: 0 0 12px rgba(216, 27, 96, 0.3);
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+
+  .directory-card {
+    padding: 30px 20px;
+  }
+
+  .back-button {
+    align-self: center;
+  }
+
+  .profile-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .profile-info {
+    text-align: center;
+  }
+}
+</style>
+
